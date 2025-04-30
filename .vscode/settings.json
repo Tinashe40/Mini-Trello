@@ -1,0 +1,20 @@
+{
+  "cSpell.words": [
+    "discoveryserver",
+    "jdbc",
+    "jjwt",
+    "jsonwebtoken",
+    "Jwts",
+    "projectlombok",
+    "projectservice",
+    "springcloudgateway",
+    "springframework",
+    "tanzu",
+    "taskservice",
+    "tinashe",
+    "userdetails",
+    "userservice"
+  ],
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.configuration.updateBuildConfiguration": "automatic"
+}
