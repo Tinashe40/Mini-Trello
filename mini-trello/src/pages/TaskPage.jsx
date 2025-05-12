@@ -2,6 +2,8 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import TaskList from "../components/Tasks/TaskList";
 import TaskForm from "../components/Tasks/TaskForm";
+import TaskBoard from "../components/Tasks/TaskBoard";
+
 import { Container, Typography } from "@mui/material";
 
 const TasksPage = () => {
@@ -17,6 +19,7 @@ const TasksPage = () => {
       </Typography>
       <TaskForm projectId={projectId} onTaskAdded={reloadTasks} />
       <TaskList projectId={projectId} key={reloadFlag} />
+      <TaskBoard projectId={projectId} />
     </Container>
   );
 };

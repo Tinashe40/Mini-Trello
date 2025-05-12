@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Projects from "./pages/Projects";
 import Tasks from "./pages/Tasks";
 import Dashboard from "./pages/Dashboard";
+import TaskBoard from "./components/Tasks/TaskBoard";
 import { AuthProvider, AuthContext } from "./auth/AuthContext";
 
 const PrivateRoute = ({ children }) => {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/dashboard" element={<PrivateRoute><Home /></PrivateRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/tasks" element={<TaskBoard />} />
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         </Routes>
       </AuthProvider>

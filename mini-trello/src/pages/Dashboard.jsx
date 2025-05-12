@@ -1,6 +1,4 @@
 import React from "react";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
 import {
   Box,
   AppBar,
@@ -15,11 +13,17 @@ import {
   CssBaseline,
   Divider,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import GroupIcon from "@mui/icons-material/Group";
-import LogoutIcon from "@mui/icons-material/Logout";
+import {
+  Brightness4 as Brightness4Icon,
+  Brightness7 as Brightness7Icon,
+  Menu as MenuIcon,
+  Dashboard as DashboardIcon,
+  Assignment as AssignmentIcon,
+  Group as GroupIcon,
+  Logout as LogoutIcon,
+} from "@mui/icons-material";
+
+import { Link as RouterLink } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { ThemeContext } from "../theme/ThemeContext";
 
@@ -34,28 +38,35 @@ const Dashboard = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  // Sidebar drawer content
   const drawer = (
     <div>
       <Toolbar />
       <Divider />
       <List>
         {[
-          { text: "Dashboard", icon: <DashboardIcon /> },
-          { text: "Projects", icon: <AssignmentIcon /> },
-          { text: "Teams", icon: <GroupIcon /> },
+          { text: "Dashboard", icon: <DashboardIcon />, link: "/" },
+          { text: "Projects", icon: <AssignmentIcon />, link: "/projects" },
+          { text: "Teams", icon: <GroupIcon />, link: "/teams" },
         ].map((item) => (
-          <ListItem button key={item.text}>
+          <ListItem button component={RouterLink} to={item.link} key={item.text}>
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
+
+        {/* Extra: Tasks Route */}
+        <ListItem button component={RouterLink} to="/tasks">
+          <ListItemIcon><AssignmentIcon /></ListItemIcon>
+          <ListItemText primary="Tasks" />
+        </ListItem>
       </List>
+
       <Divider />
+
       <List>
         <ListItem button onClick={logout}>
-          <ListItemIcon>
-            <LogoutIcon />
-          </ListItemIcon>
+          <ListItemIcon><LogoutIcon /></ListItemIcon>
           <ListItemText primary="Logout" />
         </ListItem>
       </List>
@@ -65,6 +76,8 @@ const Dashboard = () => {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
+
+      {/* Top AppBar */}
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
           <IconButton
@@ -81,17 +94,20 @@ const Dashboard = () => {
             Mini Trello Dashboard
           </Typography>
 
+          {/* Toggle Light/Dark Mode */}
           <IconButton sx={{ ml: 1 }} onClick={toggleTheme} color="inherit">
             {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
         </Toolbar>
       </AppBar>
 
+      {/* Sidebar Drawer */}
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
         aria-label="sidebar"
       >
+        {/* Mobile Drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -104,6 +120,8 @@ const Dashboard = () => {
         >
           {drawer}
         </Drawer>
+
+        {/* Permanent Desktop Drawer */}
         <Drawer
           variant="permanent"
           sx={{
@@ -116,6 +134,7 @@ const Dashboard = () => {
         </Drawer>
       </Box>
 
+      {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
         <Typography variant="h4" gutterBottom>
           Welcome to your Mini Trello Dashboard
