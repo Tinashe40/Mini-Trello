@@ -3,6 +3,8 @@ package com.tinashe.userservice.entity;
 import java.util.HashSet;
 import java.util.*;
 
+import com.tinashe.userservice.enums.UserRole;
+
 import jakarta.persistence.*;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +27,9 @@ public class User{
     private String username;
     private String password;
     private String email;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
     @ManyToMany(fetch=FetchType.EAGER)
     private Set<Role> roles= new HashSet<>();

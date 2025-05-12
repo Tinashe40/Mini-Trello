@@ -8,11 +8,13 @@ import io.swagger.v3.oas.models.info.Info;
 
 @Configuration
 public class SwaggerConfig {
+
     @Bean
-    public OpenAPI apiInfo() {
+    public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("User Service API")
-                        .version("1.0")
+                .info(new Info()
+                        .title("User Service API")
+                        .version("v1.0")
                         .description("API for User and Role Management"));
     }
 }

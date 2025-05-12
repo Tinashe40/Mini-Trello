@@ -9,12 +9,15 @@
     "projectlombok",
     "projectservice",
     "springcloudgateway",
+    "springdoc",
     "springframework",
+    "SUPERADMIN",
     "tanzu",
     "taskservice",
     "tinashe",
     "userdetails",
-    "userservice"
+    "userservice",
+    "webmvc"
   ],
   "java.compile.nullAnalysis.mode": "automatic",
   "java.configuration.updateBuildConfiguration": "automatic"
