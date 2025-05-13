@@ -26,3 +26,4 @@ API.interceptors.response.use(
 );
 export const register = (userData) => API.post("/register", userData);
 export const login = (data) => API.post("/login", data);
+export default API;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Container,
   TextField,
@@ -9,20 +9,31 @@ import {
   MenuItem,
   Select,
   InputLabel,
-  FormControl
+  FormControl,
+  Paper,
+  Divider,
 } from "@mui/material";
-import { register } from "../api/userService"; // You'll define this in your API layer
-import { useNavigate } from "react-router-dom";
+import { register } from "../api/userService";
+import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../auth/AuthContext";
 
 const Register = () => {
   const [data, setData] = useState({
     username: "",
     email: "",
     password: "",
-    role: "USER" // Set default role
+    role: "USER"
   });
+
   const [error, setError] = useState("");
+  const { isAuthenticated, login: doLogin } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
@@ -32,19 +43,20 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await register(data);
-      navigate("/login");
+      const res = await register(data);
+      doLogin(res.data.token); // Auto-login after successful registration
+      navigate("/dashboard");
     } catch (err) {
-      console.error(err);
+      console.error("Registration failed:", err);
       setError("Registration failed. Please check your details or try again.");
     }
   };
 
   return (
     <Container maxWidth="sm">
-      <Box sx={{ mt: 8, p: 4, border: "1px solid #ccc", borderRadius: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          Register
+      <Paper elevation={3} sx={{ mt: 8, p: 4 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Create an Account
         </Typography>
 
         {error && (
@@ -84,8 +96,7 @@ const Register = () => {
             onChange={handleChange}
           />
 
-          {/* Optional: role selection, or just remove this if role is always USER */}
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" required>
             <InputLabel>Role</InputLabel>
             <Select
               name="role"
@@ -101,14 +112,28 @@ const Register = () => {
           <Button
             type="submit"
             variant="contained"
-            color="primary"
             fullWidth
             sx={{ mt: 2 }}
           >
             Register
           </Button>
         </form>
-      </Box>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="body2" align="center">
+          Already have an account?
+        </Typography>
+        <Button
+          variant="outlined"
+          fullWidth
+          component={Link}
+          to="/login"
+          sx={{ mt: 1 }}
+        >
+          Login
+        </Button>
+      </Paper>
     </Container>
   );
 };

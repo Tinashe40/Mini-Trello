@@ -1,21 +1,29 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   TextField,
   Button,
   Container,
   Typography,
   Box,
-  Alert
+  Alert,
+  Paper,
+  Divider,
 } from "@mui/material";
 import { login } from "../api/userService";
 import { AuthContext } from "../auth/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const [data, setData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const { login: doLogin } = useContext(AuthContext);
+  const { login: doLogin, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
@@ -27,7 +35,7 @@ const Login = () => {
     try {
       const res = await login(data);
       doLogin(res.data.token);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       console.error("Login failed:", err);
       setError("Login failed. Please check your credentials.");
@@ -36,8 +44,10 @@ const Login = () => {
 
   return (
     <Container maxWidth="sm">
-      <Box sx={{ mt: 10, p: 4, border: "1px solid #ccc", borderRadius: 2 }}>
-        <Typography variant="h4" gutterBottom>Login</Typography>
+      <Paper elevation={3} sx={{ mt: 10, p: 4 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Login
+        </Typography>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -68,14 +78,28 @@ const Login = () => {
           <Button
             type="submit"
             variant="contained"
-            color="primary"
             fullWidth
             sx={{ mt: 2 }}
           >
             Login
           </Button>
         </form>
-      </Box>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="body2" align="center">
+          Don't have an account?
+        </Typography>
+        <Button
+          variant="outlined"
+          fullWidth
+          component={Link}
+          to="/register"
+          sx={{ mt: 1 }}
+        >
+          Register
+        </Button>
+      </Paper>
     </Container>
   );
 };
