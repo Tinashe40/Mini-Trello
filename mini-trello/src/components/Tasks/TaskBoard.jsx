@@ -1,29 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Box, Paper, Typography } from "@mui/material";
+import { getProjectTasks } from "../../api/taskService";
 
-const initialColumns = {
-  todo: {
-    name: "To Do",
-    tasks: [{ id: "1", content: "Set up backend" }]
-  },
-  inProgress: {
-    name: "In Progress",
-    tasks: [{ id: "2", content: "Design dashboard" }]
-  },
-  done: {
-    name: "Done",
-    tasks: [{ id: "3", content: "Create login page" }]
-  }
-};
+const TaskBoard = ({ projectId }) => {
+  const [columns, setColumns] = useState({
+    todo: { name: "To Do", tasks: [] },
+    inProgress: { name: "In Progress", tasks: [] },
+    done: { name: "Done", tasks: [] }
+  });
 
-const TaskBoard = () => {
-  const [columns, setColumns] = useState(initialColumns);
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const tasks = await getProjectTasks(projectId);
+        const grouped = {
+          todo: { name: "To Do", tasks: [] },
+          inProgress: { name: "In Progress", tasks: [] },
+          done: { name: "Done", tasks: [] }
+        };
+
+        tasks.forEach((task) => {
+          grouped[task.status].tasks.push({
+            id: task.id.toString(),
+            content: task.title
+          });
+        });
+
+        setColumns(grouped);
+      } catch (error) {
+        console.error("Failed to load tasks for board", error);
+      }
+    };
+
+    fetchTasks();
+  }, [projectId]);
 
   const onDragEnd = (result) => {
-    if (!result.destination) {
-      return;
-    }
+    if (!result.destination) return;
 
     const { source, destination } = result;
     const sourceCol = columns[source.droppableId];
@@ -32,32 +46,31 @@ const TaskBoard = () => {
 
     if (source.droppableId === destination.droppableId) {
       sourceCol.tasks.splice(destination.index, 0, movedTask);
-      setColumns({ ...columns, [source.droppableId]: sourceCol });
     } else {
       destCol.tasks.splice(destination.index, 0, movedTask);
-      setColumns({
-        ...columns,
-        [source.droppableId]: sourceCol,
-        [destination.droppableId]: destCol
-      });
     }
+
+    setColumns({ ...columns });
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <Box sx={{ display: "flex", gap: 2, p: 2 }}>
+      <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
         {Object.entries(columns).map(([colId, colData]) => (
           <Droppable droppableId={colId} key={colId}>
-            {(provided) => (
+            {(provided, snapshot) => (
               <Paper
                 elevation={3}
-                sx={{ width: 300, minHeight: 400, p: 2, backgroundColor: "#f4f4f4" }}
-                {...provided.droppableProps}
+                sx={{
+                  width: 300,
+                  minHeight: 400,
+                  p: 2,
+                  backgroundColor: snapshot.isDraggingOver ? "#f0f0f0" : "#fafafa"
+                }}
                 ref={provided.innerRef}
+                {...provided.droppableProps}
               >
-                <Typography variant="h6" gutterBottom>
-                  {colData.name}
-                </Typography>
+                <Typography variant="h6">{colData.name}</Typography>
                 {colData.tasks.map((task, index) => (
                   <Draggable draggableId={task.id} index={index} key={task.id}>
                     {(provided, snapshot) => (
@@ -66,9 +79,9 @@ const TaskBoard = () => {
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         sx={{
-                          p: 1,
-                          mb: 1,
-                          backgroundColor: snapshot.isDragging ? "#cce7ff" : "#fff",
+                          p: 2,
+                          mb: 2,
+                          backgroundColor: snapshot.isDragging ? "primary.light" : "white",
                           border: "1px solid #ccc"
                         }}
                       >

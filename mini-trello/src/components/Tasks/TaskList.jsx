@@ -1,46 +1,61 @@
-import React, { useEffect, useState } from "react";
-import { getProjectTasks, deleteTaskFromProject } from "../../api/projectService";
-import { Box, List, ListItem, IconButton, Typography } from "@mui/material";
+import React from "react";
+import {
+  Box,
+  List,
+  ListItem,
+  IconButton,
+  Typography,
+  CircularProgress,
+  ListItemText,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import useTasks from "../../hooks/useTasks";
 
 const TaskList = ({ projectId }) => {
-  const [tasks, setTasks] = useState([]);
+  const { tasks, deleteTask, loading } = useTasks(projectId);
 
-  const fetchTasks = async () => {
+  const handleDelete = async (taskId) => {
     try {
-      const response = await getProjectTasks(projectId);
-      setTasks(response.data);
+      await deleteTask(taskId);
     } catch (error) {
-      console.error("Failed to load tasks", error);
+      console.error("Failed to delete task", error);
     }
   };
 
-  const handleDelete = async (taskId) => {
-    await deleteTaskFromProject(projectId, taskId);
-    fetchTasks();
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, [projectId]);
-
   return (
-    <Box>
-      <Typography variant="h6" sx={{ mt: 2 }}>Tasks</Typography>
-      <List>
-        {tasks.map((task) => (
-          <ListItem
-            key={task.id}
-            secondaryAction={
-              <IconButton edge="end" onClick={() => handleDelete(task.id)}>
-                <DeleteIcon />
-              </IconButton>
-            }
-          >
-            {task.title}
-          </ListItem>
-        ))}
-      </List>
+    <Box sx={{ mt: 4 }}>
+      <Typography variant="h6" gutterBottom>
+        Task List
+      </Typography>
+
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : tasks.length > 0 ? (
+        <List>
+          {tasks.map((task) => (
+            <ListItem
+              key={task.id}
+              secondaryAction={
+                <IconButton edge="end" onClick={() => handleDelete(task.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              }
+              sx={{ borderBottom: "1px solid #e0e0e0" }}
+            >
+              <ListItemText
+                primary={task.title}
+                secondary={task.description || null}
+              />
+            </ListItem>
+          ))}
+        </List>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          No tasks found.
+        </Typography>
+      )}
     </Box>
   );
 };

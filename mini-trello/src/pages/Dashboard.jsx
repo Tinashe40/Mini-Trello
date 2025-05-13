@@ -23,7 +23,7 @@ import {
   Logout as LogoutIcon,
 } from "@mui/icons-material";
 
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { ThemeContext } from "../theme/ThemeContext";
 
@@ -33,6 +33,7 @@ const Dashboard = () => {
   const { logout } = React.useContext(AuthContext);
   const { toggleTheme, mode } = React.useContext(ThemeContext);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const location = useLocation();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -48,22 +49,21 @@ const Dashboard = () => {
           { text: "Dashboard", icon: <DashboardIcon />, link: "/" },
           { text: "Projects", icon: <AssignmentIcon />, link: "/projects" },
           { text: "Teams", icon: <GroupIcon />, link: "/teams" },
+          { text: "Tasks", icon: <AssignmentIcon />, link: "/tasks" },
         ].map((item) => (
-          <ListItem button component={RouterLink} to={item.link} key={item.text}>
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
-
-        {/* Extra: Tasks Route */}
-        <ListItem button component={RouterLink} to="/tasks">
-          <ListItemIcon><AssignmentIcon /></ListItemIcon>
-          <ListItemText primary="Tasks" />
-        </ListItem>
-      </List>
-
+          <ListItem
+            button
+              component={RouterLink}
+                to={item.link}
+      key={item.text}
+      selected={location.pathname === item.link}
+    >
+      <ListItemIcon>{item.icon}</ListItemIcon>
+      <ListItemText primary={item.text} />
+    </ListItem>
+  ))}
+</List>
       <Divider />
-
       <List>
         <ListItem button onClick={logout}>
           <ListItemIcon><LogoutIcon /></ListItemIcon>
@@ -72,11 +72,9 @@ const Dashboard = () => {
       </List>
     </div>
   );
-
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-
       {/* Top AppBar */}
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
@@ -89,18 +87,15 @@ const Dashboard = () => {
           >
             <MenuIcon />
           </IconButton>
-
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Mini Trello Dashboard
           </Typography>
-
           {/* Toggle Light/Dark Mode */}
           <IconButton sx={{ ml: 1 }} onClick={toggleTheme} color="inherit">
             {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
         </Toolbar>
       </AppBar>
-
       {/* Sidebar Drawer */}
       <Box
         component="nav"
@@ -120,7 +115,6 @@ const Dashboard = () => {
         >
           {drawer}
         </Drawer>
-
         {/* Permanent Desktop Drawer */}
         <Drawer
           variant="permanent"
@@ -133,7 +127,6 @@ const Dashboard = () => {
           {drawer}
         </Drawer>
       </Box>
-
       {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
         <Typography variant="h4" gutterBottom>
@@ -146,5 +139,4 @@ const Dashboard = () => {
     </Box>
   );
 };
-
 export default Dashboard;

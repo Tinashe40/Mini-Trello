@@ -12,7 +12,7 @@ const TaskForm = ({ projectId, onTaskAdded }) => {
       await addTaskToProject(projectId, { title, description });
       setTitle("");
       setDescription("");
-      onTaskAdded(); // refresh task list
+      onTaskAdded();
     } catch (error) {
       console.error("Failed to add task", error);
     }
@@ -21,14 +21,14 @@ const TaskForm = ({ projectId, onTaskAdded }) => {
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
       <TextField
-        label="Title"
+        label="Task Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         fullWidth
         required
       />
       <TextField
-        label="Description"
+        label="Task Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         fullWidth

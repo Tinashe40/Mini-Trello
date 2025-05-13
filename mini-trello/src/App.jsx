@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Projects from "./pages/Projects";
-import Tasks from "./pages/Tasks";
+import TasksPage from "./pages/TasksPage";
 import Dashboard from "./pages/Dashboard";
 import TaskBoard from "./components/Tasks/TaskBoard";
 import { AuthProvider, AuthContext } from "./auth/AuthContext";
