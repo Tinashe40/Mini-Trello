@@ -1,24 +1,46 @@
 package com.tinashe.userservice.service;
 
-import com.tinashe.userservice.dto.LoginRequest;
-import com.tinashe.userservice.dto.RegisterRequest;
-import com.tinashe.userservice.dto.UpdateUserRequest;
-import com.tinashe.userservice.dto.UserResponse;
 
-import java.util.List;
-import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
-public interface UserService {
-    UserResponse register(RegisterRequest request);
-    
-    UserResponse login(LoginRequest loginRequest);
+import com.tinashe.userservice.model.User;
+import com.tinashe.userservice.repository.UserRepository;
+import com.tinashe.userservice.security.CustomUserDetails;
 
+@Service
+public class UserService implements UserDetailsService {
 
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    List<UserResponse> getAllUsers();
-    UserResponse getUserById(Long id);
-    void deleteUser(Long id);
-    UserResponse updateUser(Long id, UpdateUserRequest request);
-    void assignRoleToUser(Long userId, String roleName);
-    Set<String> getUserRoles(Long userId);
+    @Autowired
+    public UserService(UserRepository userRepository,
+                       @Lazy PasswordEncoder passwordEncoder) { 
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new CustomUserDetails(user);
+    }
+
+    public User registerUser(User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Username already exists");
+        }
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
 }

@@ -5,15 +5,24 @@ spring:
   application:
     name: user-service
   datasource:
-    url: jdbc:mysql://localhost:3306/userServiceDB
+    url: jdbc:mysql://localhost:3306/UserDb
     username: root
     password: sudo0047
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
 
 jwt:
-  secret: 8c7ee55ddd5216622d83b1bcf1da0586995594c06da13fac8e308d2cc9b42780c93b69bbac7f54695bc95082274ab297a9e6bbbcdd401dd0a1b40e427b20d03b
-  expiration: 3600000 
+  secret: nzPhnXtBD7CHcNEEKjIrEtN3zRR/6SDafOwgbGAhWhDWIQiopogFfrTt8k9PWBvczlzhoeCOgNajfD8z+fyNYA==
+  expiration: 86400000 # 24 hours in milliseconds
