@@ -1,38 +1,44 @@
 package com.tinashe.projectservice.service;
 
-import com.tinashe.projectservice.model.Project;
+import com.tinashe.projectservice.entity.Project;
+import com.tinashe.projectservice.exception.ResourceNotFoundException;
 import com.tinashe.projectservice.repository.ProjectRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProjectService {
-
-    private final ProjectRepository repository;
-
-    public ProjectService(ProjectRepository repository) {
-        this.repository = repository;
-    }
-
+    
+    private final ProjectRepository projectRepository = null;
+    
     public List<Project> getAllProjects() {
-        return repository.findAll();
+        return projectRepository.findAll();
     }
-
-    public Optional<Project> getProjectById(Long id) {
-        return repository.findById(id);
+    
+    public Project getProjectById(Long id) {
+        return projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + id));
     }
-
+    
     public Project createProject(Project project) {
-        return repository.save(project);
+        return projectRepository.save(project);
     }
-
+    
+    public Project updateProject(Long id, Project projectDetails) {
+        Project project = getProjectById(id);
+        project.setName(projectDetails.getName());
+        project.setDescription(projectDetails.getDescription());
+        return projectRepository.save(project);
+    }
+    
     public void deleteProject(Long id) {
-        repository.deleteById(id);
-    }
-
-    public List<Project> getProjectsByOwnerId(String ownerId) {
-        return repository.findByOwnerId(ownerId);
+        Project project = getProjectById(id);
+        projectRepository.delete(project);
     }
 }
