@@ -1,13 +1,14 @@
-package com.tinashe.projectservice.security;
+package com.tinashe.projectservice.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
-import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.*;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.tinashe.projectservice.security.JwtAuthenticationFilter;
+
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
