@@ -25,4 +25,4 @@ eureka:
 
 jwt:
   secret: nzPhnXtBD7CHcNEEKjIrEtN3zRR/6SDafOwgbGAhWhDWIQiopogFfrTt8k9PWBvczlzhoeCOgNajfD8z+fyNYA==
-  expiration: 86400000 # 24 hours in milliseconds
+  expiration: 3600 

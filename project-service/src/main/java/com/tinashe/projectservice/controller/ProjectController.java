@@ -1,18 +1,25 @@
 package com.tinashe.projectservice.controller;
 
+import java.net.URI;
+import java.util.List;
+
+import org.aspectj.apache.bcel.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.tinashe.projectservice.entity.Project;
 import com.tinashe.projectservice.service.ProjectService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -20,6 +27,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final Repository repository;
 
     @Autowired
     public ProjectController(ProjectService projectService) {
@@ -41,8 +49,9 @@ public class ProjectController {
     @Operation(summary = "Create new project")
     @PostMapping
     public ResponseEntity<Project> createProject(@RequestBody Project project) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(projectService.createProject(project));
+        Project savedProject = repository.save(project);
+        return ResponseEntity.created(URI.create("/projects/" +savedProject.getId()))
+                .body(savedProject);
     }
 
     @Operation(summary = "Update existing project")

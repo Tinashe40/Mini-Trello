@@ -25,10 +25,11 @@ eureka:
 
 jwt:
   secret: nzPhnXtBD7CHcNEEKjIrEtN3zRR/6SDafOwgbGAhWhDWIQiopogFfrTt8k9PWBvczlzhoeCOgNajfD8z+fyNYA==
-  expiration: 86400000
+  expiration: 3600
 
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: alpha
+    
