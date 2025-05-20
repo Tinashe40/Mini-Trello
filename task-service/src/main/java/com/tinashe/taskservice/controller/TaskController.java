@@ -6,7 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
-import com.tinashe.taskservice.model.Task;
+
+import com.tinashe.taskservice.entity.Task;
 import com.tinashe.taskservice.service.TaskService;
 
 @RestController

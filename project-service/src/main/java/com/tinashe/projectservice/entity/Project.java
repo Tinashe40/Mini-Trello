@@ -37,6 +37,18 @@ public class Project {
 
     
     // Add getters and setters
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
     public String getName() {
         return name;
     }
@@ -52,6 +64,4 @@ public class Project {
     public void setDescription(String description) {
         this.description = description;
     }
-
-    // ... rest of the class ...
 }

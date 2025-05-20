@@ -3,7 +3,6 @@ package com.tinashe.projectservice.controller;
 import java.net.URI;
 import java.util.List;
 
-import org.aspectj.apache.bcel.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tinashe.projectservice.entity.Project;
-import com.tinashe.projectservice.service.ProjectService;
+import com.tinashe.projectservice.repository.ProjectRepository;
+import com.tinashe.projectservice.service.ProjectServiceImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,14 +24,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/api/projects")
 @Tag(name = "Project Management", description = "Manage projects and their details")
+
 public class ProjectController {
 
-    private final ProjectService projectService;
-    private final Repository repository;
+    private final ProjectServiceImpl projectService;
+    private final ProjectRepository projectRepository;
 
     @Autowired
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectServiceImpl projectService, ProjectRepository projectRepository) {
         this.projectService = projectService;
+        this.projectRepository = projectRepository;
     }
 
     @Operation(summary = "Get all projects")
@@ -49,8 +51,8 @@ public class ProjectController {
     @Operation(summary = "Create new project")
     @PostMapping
     public ResponseEntity<Project> createProject(@RequestBody Project project) {
-        Project savedProject = repository.save(project);
-        return ResponseEntity.created(URI.create("/projects/" +savedProject.getId()))
+        Project savedProject = projectService.createProject(project);
+        return ResponseEntity.created(URI.create("/projects/" + savedProject.getId()))
                 .body(savedProject);
     }
 

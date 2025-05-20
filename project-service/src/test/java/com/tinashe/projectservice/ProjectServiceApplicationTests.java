@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.tinashe.projectservice.security.JwtAuthenticationFilter;
-import com.tinashe.projectservice.service.ProjectService;
+import com.tinashe.projectservice.service.ProjectServiceImpl;
 import com.tinashe.projectservice.util.JwtUtil;
 
 @SpringBootTest
@@ -14,7 +14,7 @@ import com.tinashe.projectservice.util.JwtUtil;
 class ProjectServiceApplicationTests {
 
     @MockBean
-    private ProjectService projectService;
+    private ProjectServiceImpl projectService;
 
     @MockBean
     private JwtUtil jwtUtil;
