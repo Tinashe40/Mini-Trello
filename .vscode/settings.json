@@ -13,6 +13,7 @@
     "pangea",
     "projectlombok",
     "projectservice",
+    "Retryer",
     "sess",
     "springcloudgateway",
     "springdoc",
