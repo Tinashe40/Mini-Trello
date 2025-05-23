@@ -4,12 +4,11 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.tinashe.userservice.model.User;
+import com.tinashe.userservice.entity.User;
+
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
-
-    public boolean existsByEmail(String email);
-
-    public boolean existsByUsername(String username);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
 }

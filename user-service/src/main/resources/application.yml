@@ -26,3 +26,26 @@ eureka:
 jwt:
   secret: nzPhnXtBD7CHcNEEKjIrEtN3zRR/6SDafOwgbGAhWhDWIQiopogFfrTt8k9PWBvczlzhoeCOgNajfD8z+fyNYA==
   expiration: 3600 
+
+feign:
+  client:
+    config:
+      project-service:
+        url: http://localhost:8082
+        connect-timeout: 5000
+        read-timeout: 5000
+        logger-level: basic
+      task-service:
+        url: http://localhost:8083
+        connect-timeout: 5000
+        read-timeout: 5000
+        logger-level: basic
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  

@@ -8,8 +8,9 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
+import com.tinashe.userservice.security.JwtUtil;
 import com.tinashe.userservice.service.UserService;
-import com.tinashe.userservice.util.JwtUtil;
+
 
 @SpringBootTest
 @AutoConfigureMockMvc
