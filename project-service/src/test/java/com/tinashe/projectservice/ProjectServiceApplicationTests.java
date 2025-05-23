@@ -5,8 +5,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import com.tinashe.projectservice.security.JwtAuthenticationFilter;
-import com.tinashe.projectservice.service.ProjectServiceImpl;
+import com.tinashe.projectservice.security.JwtFilter;
+import com.tinashe.projectservice.service.ProjectService;
 import com.tinashe.projectservice.util.JwtUtil;
 
 @SpringBootTest
@@ -14,15 +14,16 @@ import com.tinashe.projectservice.util.JwtUtil;
 class ProjectServiceApplicationTests {
 
     @MockBean
-    private ProjectServiceImpl projectService;
+    private ProjectService projectService;
 
     @MockBean
     private JwtUtil jwtUtil;
 
-    @MockBean // Add this line
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @MockBean
+    private JwtFilter jwtFilter; // Changed from JwtAuthenticationFilter
 
     @Test
     void contextLoads() {
+        // Test will verify the application context starts successfully
     }
 }

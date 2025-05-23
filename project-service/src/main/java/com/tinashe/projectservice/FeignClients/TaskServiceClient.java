@@ -1,4 +1,4 @@
-package com.tinashe.projectservice.FeignClient;
+package com.tinashe.projectservice.FeignClients;
 
 import java.util.List;
 

@@ -3,71 +3,73 @@ package com.tinashe.projectservice.controller;
 import java.net.URI;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tinashe.projectservice.entity.Project;
-import com.tinashe.projectservice.repository.ProjectRepository;
-import com.tinashe.projectservice.service.ProjectServiceImpl;
+import com.tinashe.projectservice.enums.ProjectStatus;
+import com.tinashe.projectservice.service.ProjectService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/projects")
-@Tag(name = "Project Management", description = "Manage projects and their details")
-
+@RequiredArgsConstructor
+@Tag(name = "Project Management", description = "Manage projects and their lifecycle")
+@SecurityRequirement(name = "bearerAuth")
 public class ProjectController {
 
-    private final ProjectServiceImpl projectService;
-    private final ProjectRepository projectRepository;
+    private final ProjectService projectService;
 
-    @Autowired
-    public ProjectController(ProjectServiceImpl projectService, ProjectRepository projectRepository) {
-        this.projectService = projectService;
-        this.projectRepository = projectRepository;
-    }
-
-    @Operation(summary = "Get all projects")
-    @GetMapping
-    public ResponseEntity<List<Project>> getAllProjects() {
-        return ResponseEntity.ok(projectService.getAllProjects());
-    }
-
-    @Operation(summary = "Get project by ID")
-    @GetMapping("/{id}")
-    public ResponseEntity<Project> getProjectById(@PathVariable Long id) {
-        return ResponseEntity.ok(projectService.getProjectById(id));
-    }
-
-    @Operation(summary = "Create new project")
     @PostMapping
-    public ResponseEntity<Project> createProject(@RequestBody Project project) {
-        Project savedProject = projectService.createProject(project);
-        return ResponseEntity.created(URI.create("/projects/" + savedProject.getId()))
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create new project (Admin only)")
+    public ResponseEntity<Project> createProject(
+            @RequestBody Project project,
+            @RequestHeader("Authorization") String token) {
+        Project savedProject = projectService.createProject(project, token);
+        return ResponseEntity.created(URI.create("/api/projects/" + savedProject.getId()))
                 .body(savedProject);
     }
 
-    @Operation(summary = "Update existing project")
-    @PutMapping("/{id}")
-    public ResponseEntity<Project> updateProject(
-            @PathVariable Long id, 
-            @RequestBody Project projectDetails) {
-        return ResponseEntity.ok(projectService.updateProject(id, projectDetails));
+    @PatchMapping("/{projectId}/status")
+    @Operation(summary = "Update project status")
+    public ResponseEntity<Project> updateStatus(
+            @PathVariable Long projectId,
+            @RequestParam ProjectStatus status) {
+        return ResponseEntity.ok(projectService.updateProjectStatus(projectId, status));
     }
 
-    @Operation(summary = "Delete project")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
-        projectService.deleteProject(id);
+    @DeleteMapping("/{projectId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete project (Admin only)")
+    public ResponseEntity<Void> deleteProject(@PathVariable Long projectId) {
+        projectService.deleteProject(projectId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{projectId}")
+    @Operation(summary = "Get project details")
+    public ResponseEntity<Project> getProjectById(@PathVariable Long projectId) {
+        return ResponseEntity.ok(projectService.getProjectById(projectId));
+    }
+
+    @GetMapping("/user/{userId}")
+    @Operation(summary = "Get projects by user")
+    public ResponseEntity<List<Project>> getUserProjects(@PathVariable Long userId) {
+        return ResponseEntity.ok(projectService.getUserProjects(userId));
     }
 }
