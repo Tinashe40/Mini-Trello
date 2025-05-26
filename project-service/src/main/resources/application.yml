@@ -29,11 +29,13 @@ jwt:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html
+    url: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: alpha
+    enabled: true
   api-docs:
-  path: /v3/api-docs
+    path: /v3/api-docs
+
 feign:
   client:
     config:
