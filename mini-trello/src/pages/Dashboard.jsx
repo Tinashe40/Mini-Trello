@@ -30,7 +30,7 @@ import { ThemeContext } from "../theme/ThemeContext";
 const drawerWidth = 240;
 
 const Dashboard = () => {
-  const { logout } = React.useContext(AuthContext);
+  const { user, logout } = React.useContext(AuthContext);
   const { toggleTheme, mode } = React.useContext(ThemeContext);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const location = useLocation();
@@ -130,8 +130,9 @@ const Dashboard = () => {
       {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
         <Typography variant="h4" gutterBottom>
-          Welcome to your Mini Trello Dashboard
+          Welcome, {user?.username}!
         </Typography>
+        <Typography>Role: {user?.role}</Typography>
         <Typography>
           Here you can manage your projects, tasks, and collaborate with your team.
         </Typography>

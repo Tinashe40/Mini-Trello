@@ -1,76 +1,122 @@
 package com.tinashe.userservice.security;
 
-import java.security.Key;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.stereotype.Component;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
+import com.tinashe.userservice.entity.User;
+
+import io.jsonwebtoken.*;
+
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 
-@Service
+@Component
 public class JwtUtil {
 
+    public static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 15; // 15 minutes
+    public static final long REFRESH_TOKEN_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7 days
+    public static final String TOKEN_TYPE_ACCESS = "access";
+    public static final String TOKEN_TYPE_REFRESH = "refresh";
+
     @Value("${jwt.secret}")
-    private String secret;
+    private String jwtSecret;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    private SecretKey key;
+    private final ConcurrentHashMap<String, String> refreshTokenStore = new ConcurrentHashMap<>();
+    private final UserDetailsService userDetailsService;
 
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername());
+    public JwtUtil(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String generateAccessToken(User user) {
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .subject(user.getUsername())
+                .claim("id", user.getId())
+                .claim("email", user.getEmail())
+                .claim("role", user.getRole().name())
+                .claim("type", TOKEN_TYPE_ACCESS)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+                .signWith(key)
                 .compact();
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    public String generateRefreshToken(User user) {
+        String refreshToken = Jwts.builder()
+                .subject(user.getUsername())
+                .claim("type", TOKEN_TYPE_REFRESH)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+                .signWith(key)
+                .compact();
+
+        refreshTokenStore.put(user.getUsername(), refreshToken);
+        return refreshToken;
+    }
+
+    public String refreshAccessToken(String refreshToken) throws JwtException {
+        if (!isRefreshToken(refreshToken)) {
+            throw new JwtException("Invalid refresh token");
+        }
+
+        String username = extractUsername(refreshToken);
+        String storedRefreshToken = refreshTokenStore.get(username);
+
+        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+            throw new JwtException("Refresh token is invalid or expired");
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (!(userDetails instanceof User user)) {
+            throw new JwtException("Invalid user details");
+        }
+
+        return generateAccessToken(user);
+    }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            return TOKEN_TYPE_REFRESH.equals(parseToken(token).getPayload().get("type", String.class));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return parseToken(token).getPayload().getSubject();
     }
 
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    public boolean isTokenValid(String token) {
+        try {
+            parseToken(token);
+            return true;
+        } catch (JwtException e) {
+            return false;
+        }
     }
 
-    private <T> T extractClaim(String token, java.util.function.Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+    public void invalidateRefreshToken(String username) {
+        refreshTokenStore.remove(username);
     }
 
-    private Claims extractAllClaims(String token) {
+    private Jws<Claims> parseToken(String token) {
         return Jwts.parser()
-                .setSigningKey(getSigningKey())
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getPayload();
-    }
-
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+                .parseSignedClaims(token);
     }
 }

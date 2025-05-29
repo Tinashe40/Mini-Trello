@@ -1,7 +1,9 @@
 {
   "cSpell.words": [
     "Configurer",
+    "databind",
     "discoveryserver",
+    "fasterxml",
     "feignclients",
     "jdbc",
     "jjwt",

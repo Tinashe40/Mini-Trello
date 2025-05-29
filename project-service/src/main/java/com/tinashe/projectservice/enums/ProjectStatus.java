@@ -1,4 +1,3 @@
-
 package com.tinashe.projectservice.enums;
 
 public enum ProjectStatus {

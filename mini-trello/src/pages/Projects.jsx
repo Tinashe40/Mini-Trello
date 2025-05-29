@@ -14,29 +14,42 @@ import {
   TextField,
   IconButton,
   Tooltip,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import {
-  getProjects,
-  createProject,
-  updateProject,
+import { 
+  getUserProjects, 
+  createProject, 
   deleteProject,
+  updateProjectStatus
 } from "../api/projectService";
+import { AuthContext } from "../auth/AuthContext";
+import { ProjectStatus } from "../enums"; // Create this enum file
 
 const Projects = () => {
+  const { user } = React.useContext(AuthContext);
   const [projects, setProjects] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "" });
-  const [editMode, setEditMode] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [form, setForm] = useState({ 
+    name: "", 
+    description: "",
+    status: ProjectStatus.ACTIVE // Default status
+  });
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(ProjectStatus.ACTIVE);
 
   const fetchProjects = async () => {
     try {
-      const res = await getProjects();
-      setProjects(res.data);
+      if (user && user.id) {
+        const res = await getUserProjects(user.id);
+        setProjects(res.data);
+      }
     } catch (err) {
       console.error("Error fetching projects:", err);
     }
@@ -44,26 +57,27 @@ const Projects = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [user]);
 
-  const handleOpenDialog = (project = null) => {
-    if (project) {
-      setForm({ name: project.name, description: project.description });
-      setEditMode(true);
-      setSelectedProjectId(project.id);
-    } else {
-      setForm({ name: "", description: "" });
-      setEditMode(false);
-      setSelectedProjectId(null);
-    }
+  const handleOpenDialog = () => {
+    setForm({ 
+      name: "", 
+      description: "",
+      status: ProjectStatus.ACTIVE
+    });
     setDialogOpen(true);
+  };
+
+  const handleOpenStatusDialog = (project) => {
+    setSelectedProject(project);
+    setSelectedStatus(project.status);
+    setStatusDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
-    setForm({ name: "", description: "" });
-    setEditMode(false);
-    setSelectedProjectId(null);
+    setStatusDialogOpen(false);
+    setSelectedProject(null);
   };
 
   const handleChange = (e) => {
@@ -72,15 +86,26 @@ const Projects = () => {
 
   const handleSave = async () => {
     try {
-      if (editMode) {
-        await updateProject(selectedProjectId, form);
-      } else {
-        await createProject(form);
-      }
+      await createProject(form);
       handleCloseDialog();
       fetchProjects();
     } catch (err) {
-      console.error("Error saving project:", err);
+      console.error("Error creating project:", err);
+    }
+  };
+
+  const handleStatusUpdate = async () => {
+    try {
+      if (selectedProject) {
+        await updateProjectStatus(
+          selectedProject.id, 
+          selectedStatus
+        );
+        handleCloseDialog();
+        fetchProjects();
+      }
+    } catch (err) {
+      console.error("Error updating status:", err);
     }
   };
 
@@ -97,13 +122,15 @@ const Projects = () => {
     <Box sx={{ p: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Projects</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          New Project
-        </Button>
+        {user?.role === "ADMIN" && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpenDialog}
+          >
+            New Project
+          </Button>
+        )}
       </Box>
 
       <Grid container spacing={3}>
@@ -115,27 +142,34 @@ const Projects = () => {
                 <Typography variant="body2" color="text.secondary">
                   {project.description}
                 </Typography>
+                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                  Status: {project.status}
+                </Typography>
               </CardContent>
               <CardActions>
-                <Tooltip title="Edit">
-                  <IconButton onClick={() => handleOpenDialog(project)}>
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Delete">
-                  <IconButton onClick={() => handleDelete(project.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
+                <Button 
+                  size="small"
+                  onClick={() => handleOpenStatusDialog(project)}
+                >
+                  Update Status
+                </Button>
+                
+                {user?.role === "ADMIN" && (
+                  <Tooltip title="Delete">
+                    <IconButton onClick={() => handleDelete(project.id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      {/* Project Dialog */}
+      {/* Create Project Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth>
-        <DialogTitle>{editMode ? "Edit Project" : "New Project"}</DialogTitle>
+        <DialogTitle>New Project</DialogTitle>
         <DialogContent>
           <TextField
             label="Project Name"
@@ -144,6 +178,7 @@ const Projects = () => {
             onChange={handleChange}
             fullWidth
             margin="normal"
+            required
           />
           <TextField
             label="Description"
@@ -155,11 +190,53 @@ const Projects = () => {
             multiline
             rows={3}
           />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Status</InputLabel>
+            <Select
+              name="status"
+              value={form.status}
+              label="Status"
+              onChange={handleChange}
+            >
+              {Object.values(ProjectStatus).map(status => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
           <Button onClick={handleSave} variant="contained">
-            {editMode ? "Update" : "Create"}
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Update Status Dialog */}
+      <Dialog open={statusDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Update Project Status</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 2, minWidth: 200 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={selectedStatus}
+              label="Status"
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            >
+              {Object.values(ProjectStatus).map(status => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleStatusUpdate} variant="contained">
+            Update
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,66 +1,100 @@
-import React, { useState, useContext, useEffect } from "react";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
-  Container,
-  TextField,
-  Button,
-  Typography,
-  Box,
   Alert,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-  Paper,
+  Box,
+  Button,
+  Container,
   Divider,
+  FormControl,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography
 } from "@mui/material";
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { register } from "../api/userService";
-import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 
 const Register = () => {
-  const [data, setData] = useState({
+  const [userData, setUserData] = useState({
     username: "",
     email: "",
     password: "",
     role: "USER"
   });
-
   const [error, setError] = useState("");
-  const { isAuthenticated, login: doLogin } = useContext(AuthContext);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login: contextLogin } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/dashboard");
-    }
-  }, [isAuthenticated, navigate]);
-
   const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
-    setError("");
+    const { name, value } = e.target;
+    setUserData(prev => ({ ...prev, [name]: value }));
+    if (error) setError("");
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Simple validation
+    if (!userData.username || !userData.email || !userData.password) {
+      setError("Please fill in all required fields");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError("");
+    
     try {
-      const res = await register(data);
-      doLogin(res.data.token); // Auto-login after successful registration
+      const response = await register(userData);
+      contextLogin(
+        {
+          accessToken: response.data.accessToken,
+          refreshToken: response.data.refreshToken
+        },
+        {
+          id: response.data.id,
+          username: response.data.username,
+          email: response.data.email,
+          role: response.data.role
+        }
+      );
       navigate("/dashboard");
     } catch (err) {
-      console.error("Registration failed:", err);
-      setError("Registration failed. Please check your details or try again.");
+      setError(err.response?.data?.message || "Registration failed. Please check your details.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ mt: 8, p: 4 }}>
-        <Typography variant="h4" align="center" gutterBottom>
-          Create an Account
-        </Typography>
+    <Container maxWidth="sm" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ 
+        p: 4, 
+        borderRadius: 2,
+        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
+      }}>
+        <Box textAlign="center" mb={3}>
+          <Typography variant="h4" fontWeight="600" gutterBottom>
+            Create Account
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            Get started with our platform
+          </Typography>
+        </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
         )}
@@ -72,9 +106,11 @@ const Register = () => {
             fullWidth
             margin="normal"
             required
-            value={data.username}
+            value={userData.username}
             onChange={handleChange}
+            autoFocus
           />
+          
           <TextField
             label="Email"
             name="email"
@@ -82,30 +118,43 @@ const Register = () => {
             fullWidth
             margin="normal"
             required
-            value={data.email}
+            value={userData.email}
             onChange={handleChange}
           />
+          
           <TextField
             label="Password"
             name="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             fullWidth
             margin="normal"
             required
-            value={data.password}
+            value={userData.password}
             onChange={handleChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={togglePasswordVisibility}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
-
+          
           <FormControl fullWidth margin="normal" required>
-            <InputLabel>Role</InputLabel>
+            <InputLabel>Account Type</InputLabel>
             <Select
               name="role"
-              value={data.role}
-              label="Role"
+              value={userData.role}
+              label="Account Type"
               onChange={handleChange}
             >
-              <MenuItem value="USER">User</MenuItem>
-              <MenuItem value="ADMIN">Admin</MenuItem>
+              <MenuItem value="USER">Regular User</MenuItem>
+              <MenuItem value="ADMIN">Administrator</MenuItem>
             </Select>
           </FormControl>
 
@@ -113,27 +162,45 @@ const Register = () => {
             type="submit"
             variant="contained"
             fullWidth
-            sx={{ mt: 2 }}
+            size="large"
+            sx={{ mt: 3, py: 1.5 }}
+            disabled={isSubmitting}
           >
-            Register
+            {isSubmitting ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
 
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ my: 3 }}>
+          <Typography variant="body2" color="textSecondary">OR</Typography>
+        </Divider>
 
-        <Typography variant="body2" align="center">
-          Already have an account?
-        </Typography>
-        <Button
-          variant="outlined"
-          fullWidth
-          component={Link}
-          to="/login"
-          sx={{ mt: 1 }}
-        >
-          Login
-        </Button>
+        <Box textAlign="center">
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            Already have an account?
+          </Typography>
+          <Button
+            variant="outlined"
+            fullWidth
+            component={Link}
+            to="/login"
+            disabled={isSubmitting}
+          >
+            Sign In
+          </Button>
+        </Box>
       </Paper>
+      
+      <Box mt={2} textAlign="center">
+        <Typography variant="body2" color="textSecondary">
+          By creating an account, you agree to our 
+          <Button component={Link} to="/terms" size="small">
+            Terms of Service
+          </Button> and 
+          <Button component={Link} to="/privacy" size="small">
+            Privacy Policy
+          </Button>
+        </Typography>
+      </Box>
     </Container>
   );
 };
